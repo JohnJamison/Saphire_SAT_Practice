@@ -32,3 +32,26 @@ Runner/GeneratedPluginRegistrant.*
 !default.mode2v3
 !default.pbxuser
 !default.perspectivev3
+
+# Flutter/Dart/Pub
+.dart_tool/
+.packages
+.pub/
+
+# Build outputs
+build/
+
+# iOS / macOS
+ios/Pods/
+ios/Runner.xcworkspace/
+macos/Pods/
+macos/Runner.xcworkspace/
+
+# Windows
+windows/x64/
+windows/runner/Debug/
+windows/runner/Release/
+
+# Android
+android/.gradle/
+android/app/build/
