@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:sat_practice_app/pages/leaderboard_page.dart';
+
 
 void main() => runApp(const SaphireApp());
 
@@ -100,7 +102,21 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         elevation: 0,
         centerTitle: true,
         title: const Text('Pick a mode'),
-        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.person_outline))],
+        actions: [
+  IconButton(
+    icon: const Icon(Icons.leaderboard_outlined),
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LeaderboardPage()),
+      );
+    },
+  ),
+  IconButton(
+    onPressed: () {},
+    icon: const Icon(Icons.person_outline),
+  ),
+],
       ),
       body: Stack(
         children: [
