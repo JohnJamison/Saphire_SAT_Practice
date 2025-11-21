@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:sat_practice_app/models/profile.dart';
 import 'package:sat_practice_app/pages/leaderboard_page.dart';
+import 'package:sat_practice_app/pages/profile_page.dart';
 
 
 void main() => runApp(const SaphireApp());
@@ -113,7 +115,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     },
   ),
   IconButton(
-    onPressed: () {},
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => ProfilePage(profile: Profile(
+          'SampleUser',
+          'sampleuser@example.com',
+          "password123",
+        ))),
+      );
+    },
     icon: const Icon(Icons.person_outline),
   ),
 ],
