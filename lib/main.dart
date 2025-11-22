@@ -4,8 +4,17 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'screens/home_root.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() => runApp(const SaphireApp());
+
+// void main() => runApp(const SaphireApp());
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const SaphireApp());
+}
+
 
 // Allow scrolling with touch/mouse/trackpad on web/desktop.
 class AppScrollBehavior extends MaterialScrollBehavior {

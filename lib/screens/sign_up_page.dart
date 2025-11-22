@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
-import '../models/profile.dart';
-import '../services/profile_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
+
+import '../models/user_profile.dart';
+import '../models/user_events.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -11,98 +14,124 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  // Text controllers for all input fields
+  final _formKey = GlobalKey<FormState>();
+
+  // Text controllers
   final usernameController = TextEditingController();
   final displayNameController = TextEditingController();
+  final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  final profilePhotoController = TextEditingController();
   final countryController = TextEditingController();
   final stateController = TextEditingController();
   final cityController = TextEditingController();
-  final emailController = TextEditingController();
-  final phoneController = TextEditingController();
 
-  // Generates a random user ID (just here for now should remove later)
-  String generateUserId() {
-    final rand = Random();
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    return List.generate(12, (index) => chars[rand.nextInt(chars.length)]).join();
+  bool loading = false;
+
+  Future<void> _createAccount() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => loading = true);
+
+    try {
+      /// 1. Create Firebase Auth user
+      UserCredential cred = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      final firebaseUid = cred.user!.uid;
+
+      /// 2. Generate your own internal user ID
+      final internalUserId = const Uuid().v4();
+
+      /// 3. Build UserProfile object
+      UserProfile profile = UserProfile(
+        id: internalUserId,
+        username: usernameController.text.trim(),
+        displayName: displayNameController.text.trim(),
+        email: emailController.text.trim(),
+        profilePhoto: "", // default for now
+        country: countryController.text.trim(),
+        state: stateController.text.trim(),
+        city: cityController.text.trim(),
+        friends: [],
+        events: [],
+      );
+
+      /// 4. Store in Firestore
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(firebaseUid)
+          .set(profile.toJson());
+
+      if (mounted) {
+        Navigator.pop(context); // or go to home page
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
+
+    setState(() => loading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Create Your Account"),
-      ),
-      body: SingleChildScrollView(
+      appBar: AppBar(title: const Text("Create Account")),
+      body: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _buildInput("Username", usernameController),
-            _buildInput("Display Name", displayNameController),
-            _buildInput("Password", passwordController, isPassword: true),
-            _buildInput("Profile Photo URL (optional)", profilePhotoController),
-            _buildInput("Country", countryController),
-            _buildInput("State", stateController),
-            _buildInput("City", cityController),
-            _buildInput("Email Address", emailController),
-            _buildInput("Phone Number", phoneController, isNumber: true),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                controller: usernameController,
+                decoration: const InputDecoration(labelText: "Username"),
+                validator: (v) => v!.isEmpty ? "Enter username" : null,
+              ),
+              TextFormField(
+                controller: displayNameController,
+                decoration: const InputDecoration(labelText: "Display Name"),
+              ),
+              TextFormField(
+                controller: emailController,
+                decoration: const InputDecoration(labelText: "Email"),
+                validator: (v) => v!.contains("@") ? null : "Invalid email",
+              ),
+              TextFormField(
+                controller: passwordController,
+                decoration: const InputDecoration(labelText: "Password"),
+                obscureText: true,
+                validator: (v) =>
+                    v!.length < 6 ? "Password must be 6+ chars" : null,
+              ),
+              TextFormField(
+                controller: countryController,
+                decoration: const InputDecoration(labelText: "Country"),
+              ),
+              TextFormField(
+                controller: stateController,
+                decoration: const InputDecoration(labelText: "State"),
+              ),
+              TextFormField(
+                controller: cityController,
+                decoration: const InputDecoration(labelText: "City"),
+              ),
+              const SizedBox(height: 20),
 
-            const SizedBox(height: 20),
-
-            ElevatedButton(
-              child: const Text("Create Account"),
-              onPressed: () async {
-                String userId = generateUserId();
-
-                Profile newProfile = Profile(
-                  usernameController.text.trim(),
-                  displayNameController.text.trim(),
-                  passwordController.text.trim(),
-                  profilePhotoController.text.trim().isEmpty
-                      ? "assets/default_profile.png"
-                      : profilePhotoController.text.trim(),
-                  countryController.text.trim(),
-                  stateController.text.trim(),
-                  cityController.text.trim(),
-                  emailController.text.trim(),
-                  int.tryParse(phoneController.text.trim()) ?? 0,
-                  userId,
-                  [],
-                  [],
-                );
-
-                // ⚡ AUTO-SAVE TO FIRESTORE
-                await ProfileService.saveProfile(newProfile);
-
-                // Return the profile (optional)
-                Navigator.pop(context, newProfile);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Widget builder for text inputs
-  Widget _buildInput(String label, TextEditingController controller,
-      {bool isPassword = false, bool isNumber = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
-      child: TextField(
-        controller: controller,
-        obscureText: isPassword,
-        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+              ElevatedButton(
+                onPressed: loading ? null : _createAccount,
+                child: loading
+                    ? const CircularProgressIndicator()
+                    : const Text("Sign Up"),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-
 }
