@@ -6,7 +6,9 @@ class Profile {
   String city;
   String country;
   String emailAddress;
+  int phoneNumber;
   String userId;
+  List<int> questionHistory;
 
   // Constructor
   Profile(
@@ -17,7 +19,9 @@ class Profile {
     this.city,
     this.country,
     this.emailAddress,
-    this.userId
+    this.phoneNumber,
+    this.userId,
+    this.questionHistory
   );
 
   // Getters
@@ -49,9 +53,15 @@ class Profile {
     return emailAddress;
   }
 
+  int get phone_number {
+    return phoneNumber;
+  }
+
   String get user_id {
     return userId;
   }
 
-
+  List<int> get question_history {
+    return questionHistory;
+  }
 }
