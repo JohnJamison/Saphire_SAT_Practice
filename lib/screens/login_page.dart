@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/google_auth_service.dart';
-import '../main.dart';
+import 'home_root.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -25,7 +25,7 @@ class LoginPage extends StatelessWidget {
                   // Navigate to HomePage
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (_) => HomePage()),
+                    MaterialPageRoute(builder: (_) => HomeRoot()),
                   );
                 }
               },
