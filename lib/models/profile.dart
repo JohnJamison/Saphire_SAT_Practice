@@ -2,12 +2,14 @@ class Profile {
   String username;
   String displayName;
   String password;
+  String profilePhoto; // asset path or URL
+  String country;
   String state;
   String city;
-  String country;
   String emailAddress;
   int phoneNumber;
   String userId;
+  List<String> friends;   // list of user IDs this user is friends with
   List<int> questionHistory;
 
   // Constructor
@@ -15,12 +17,14 @@ class Profile {
     this.username,
     this.displayName, 
     this.password,
+    this.profilePhoto,
+    this.country,
     this.state,
     this.city,
-    this.country,
     this.emailAddress,
     this.phoneNumber,
     this.userId,
+    this.friends,  // list of user IDs this user is friends with
     this.questionHistory
   );
 
@@ -61,7 +65,29 @@ class Profile {
     return userId;
   }
 
+  List<String> get friends_ids {
+    return friends;
+  }
+
   List<int> get question_history {
     return questionHistory;
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      "username": username,
+      "displayName": displayName,
+      "password": password, 
+      "profilePhoto": profilePhoto,
+      "country": country,
+      "state": state,
+      "city": city,
+      "emailAddress": emailAddress,
+      "phoneNumber": phoneNumber,
+      "userId": userId,
+      "friends": friends,
+      "questionHistory": questionHistory,
+    };
+  }
+
 }
