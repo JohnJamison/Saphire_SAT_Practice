@@ -1,14 +1,33 @@
+// Root app with bottom nav + new dashboard home.
+// Safe to replace your current main.dart.
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'screens/home_carousel.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'screens/home_root.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+
 
 void main() => runApp(const SaphireApp());
 
+// Allow scrolling with touch/mouse/trackpad on web/desktop.
+class AppScrollBehavior extends MaterialScrollBehavior {
+  const AppScrollBehavior();
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+        PointerDeviceKind.stylus,
+      };
+}
+
 class SaphireApp extends StatelessWidget {
   const SaphireApp({super.key});
-
   static const brandRed = Color(0xFFB80F0A);
-
 
   @override
   Widget build(BuildContext context) {
@@ -19,22 +38,9 @@ class SaphireApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Saphire — SAT Practice',
+      title: 'Saphire SAT',
       scrollBehavior: const AppScrollBehavior(),
       theme: base.copyWith(
-        appBarTheme: base.appBarTheme.copyWith(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.white,
-          centerTitle: true,
-          elevation: 100,
-          titleTextStyle: base.textTheme.titleMedium?.copyWith(
-            color: brandRed,
-            fontWeight: FontWeight.w800,
-            fontSize: 20,
-            letterSpacing: .1,
-          ),
-          iconTheme: const IconThemeData(color: brandRed),
-        ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
             backgroundColor: brandRed,
@@ -42,25 +48,12 @@ class SaphireApp extends StatelessWidget {
             shape: const StadiumBorder(),
           ),
         ),
-        cardTheme: const CardThemeData(
-          margin: EdgeInsets.zero,
-          clipBehavior: Clip.antiAlias,
+        inputDecorationTheme: const InputDecorationTheme(
+          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))),
         ),
+        cardTheme: const CardThemeData(margin: EdgeInsets.zero, clipBehavior: Clip.antiAlias),
       ),
-      home: const HomeCarousel(),
+      home: const HomeRoot(), // <- new bottom-nav shell
     );
   }
-}
-
-// custom scroll behavior so mouse / trackpad / touch all work
-class AppScrollBehavior extends MaterialScrollBehavior {
-  const AppScrollBehavior();
-
-  @override
-  Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.trackpad,
-        PointerDeviceKind.stylus,
-      };
 }

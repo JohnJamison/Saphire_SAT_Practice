@@ -15,24 +15,36 @@ class PlayingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return ConstrainedBox(
+
       constraints: const BoxConstraints(maxHeight: 600),
+
       child: AspectRatio(
+
+        //Card Size
         aspectRatio: 2.6 / 4,
         child: LayoutBuilder(builder: (context, c) {
+
           final ovalWidth = c.maxWidth * .70;
           return Stack(
+
             clipBehavior: Clip.none,
             children: [
+
               Positioned(
+
                 left: (c.maxWidth - ovalWidth) / 2,
                 right: (c.maxWidth - ovalWidth) / 2,
                 bottom: 28,
                 child: IgnorePointer(
+
                   child: AnimatedContainer(
+
                     duration: const Duration(milliseconds: 160),
                     height: 22,
                     decoration: BoxDecoration(
+
                       borderRadius: BorderRadius.circular(999),
                       color:
                           Colors.black.withOpacity(highlighted ? 0.22 : 0.14),
