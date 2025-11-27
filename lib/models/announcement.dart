@@ -5,11 +5,5 @@ class Announcement {
   final String title;
   final String? subtitle;
   final Color tint;
-
-  Announcement(
-    this.icon,
-    this.title, {
-    this.subtitle,
-    this.tint = const Color(0xFFB80F0A),
-  });
+  const Announcement(this.icon, this.title, {this.subtitle, this.tint = const Color(0xFFB80F0A)});
 }
