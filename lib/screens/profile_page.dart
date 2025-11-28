@@ -208,50 +208,6 @@ class ProfilePage extends StatelessWidget {
             ),
 
             const SizedBox(height: 30),
-
-            // ---------------------------------------------------------
-            //                   COLLECTION SECTION
-            // ---------------------------------------------------------
-            _sectionTitle("Collection"),
-            const SizedBox(height: 10),
-
-            SizedBox(
-              height: 160,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.only(left: 20),
-                children: [
-                  _collectionCard("Math", Colors.blue),
-                  _collectionCard("Reading", Colors.purple),
-                  _collectionCard("Writing", Colors.orange),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            // ---------------------------------------------------------
-            //                       TAGS
-            // ---------------------------------------------------------
-            _sectionTitle("Tags"),
-            const SizedBox(height: 10),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _tag("Math"),
-                  _tag("Speed"),
-                  _tag("Reading"),
-                  _tag("Practice"),
-                  _tag("Daily"),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 50),
           ],
         ),
       ),

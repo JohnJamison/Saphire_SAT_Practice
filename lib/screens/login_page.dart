@@ -1,194 +1,114 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';  // For UserCredential errors
+import '../../services/auth_service.dart';  // Adjust path to your AuthService
 
-import '../models/user_profile.dart';
-import '../models/user_events.dart';
-
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class LoginPage extends StatefulWidget {  // ← NOT const constructor
+  const LoginPage({super.key});  // ← Make this const for parent usage
 
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
-  bool loading = false;
-
-  // -------------------------
-  // Helper: Load UserProfile from Firestore
-  // -------------------------
-  Future<UserProfile> _loadUserProfile(String firebaseUid) async {
-    DocumentSnapshot doc = await FirebaseFirestore.instance
-        .collection("users")
-        .doc(firebaseUid)
-        .get();
-
-    if (!doc.exists) {
-      throw Exception("User profile not found.");
-    }
-
-    return UserProfile.fromJson(doc.data() as Map<String, dynamic>);
-  }
-
-  // -------------------------
-  // Email + Password Login
-  // -------------------------
   Future<void> _loginWithEmail() async {
-    setState(() => loading = true);
-
     try {
-      UserCredential cred = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
-
-      final firebaseUid = cred.user!.uid;
-
-      // Load profile
-      UserProfile profile = await _loadUserProfile(firebaseUid);
-
+      await AuthService.loginWithEmail(_emailController.text, _passwordController.text);
+      // StreamBuilder auto-navigates
+    } on FirebaseAuthException catch (e) {  // Handle Firebase errors
       if (mounted) {
-        Navigator.pushReplacementNamed(
-          context,
-          "/home", // replace with your home route
-          arguments: profile,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: ${e.message}')),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Login failed: $e")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: $e')),
+        );
+      }
     }
-
-    setState(() => loading = false);
   }
 
-  // -------------------------
-  // Google Sign-In Login
-  // -------------------------
   Future<void> _loginWithGoogle() async {
-    setState(() => loading = true);
-
     try {
-      // Step 1: Trigger the Google Sign-In flow
-      final GoogleSignInAccount? googleUser =
-          await GoogleSignIn(scopes: ['email']).signIn();
-
-      if (googleUser == null) {
-        setState(() => loading = false);
-        return; // user cancelled
-      }
-
-      // Step 2: Get Google auth details
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      // Step 3: Build Firebase credentials
-      final credential = GoogleAuthProvider.credential(
-        idToken: googleAuth.idToken,
-        accessToken: googleAuth.accessToken,
-      );
-
-      // Step 4: Sign in to Firebase
-      UserCredential cred =
-          await FirebaseAuth.instance.signInWithCredential(credential);
-
-      final firebaseUid = cred.user!.uid;
-
-      // Step 5: If new user → create default profile
-      DocumentSnapshot doc = await FirebaseFirestore.instance
-          .collection("users")
-          .doc(firebaseUid)
-          .get();
-
-      UserProfile profile;
-
-      if (!doc.exists) {
-        profile = UserProfile(
-          id: firebaseUid, // reuse UID as internal ID
-          username: googleUser.email.split("@")[0],
-          displayName: googleUser.displayName ?? "",
-          email: googleUser.email,
-          profilePhoto: googleUser.photoUrl ?? "",
-          country: "",
-          state: "",
-          city: "",
-          friends: [],
-          events: [],
-        );
-
-        // Create Firestore document
-        await FirebaseFirestore.instance
-            .collection("users")
-            .doc(firebaseUid)
-            .set(profile.toJson());
-      } else {
-        // Load existing profile
-        profile = UserProfile.fromJson(doc.data() as Map<String, dynamic>);
-      }
-
-      if (mounted) {
-        Navigator.pushReplacementNamed(
-          context,
-          "/home",
-          arguments: profile,
-        );
-      }
+      await AuthService.loginWithGoogle();
+      // StreamBuilder auto-navigates
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Google Login failed: $e")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Google login failed: $e')),
+        );
+      }
     }
-
-    setState(() => loading = false);
   }
 
-  // -------------------------
-  // UI
-  // -------------------------
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Login")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: "Email"),
-            ),
-            TextField(
-              controller: passwordController,
-              decoration: const InputDecoration(labelText: "Password"),
-              obscureText: true,
-            ),
-
-            const SizedBox(height: 20),
-
-            ElevatedButton(
-              onPressed: loading ? null : _loginWithEmail,
-              child: loading
-                  ? const CircularProgressIndicator()
-                  : const Text("Login"),
-            ),
-
-            const SizedBox(height: 40),
-            const Divider(),
-            const SizedBox(height: 20),
-
-            ElevatedButton.icon(
-              onPressed: loading ? null : _loginWithGoogle,
-              icon: const Icon(Icons.login),
-              label: const Text("Sign in with Google"),
-            ),
-          ],
+      backgroundColor: const Color(0xFF8B0D07),  // Match your app theme
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Welcome back',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 32),
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _loginWithEmail,
+                  child: const Text('Login'),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _loginWithGoogle,
+                  child: const Text('Login with Google'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
-
+import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../models/user_events.dart';
 
@@ -16,119 +14,136 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Text controllers
-  final usernameController = TextEditingController();
-  final displayNameController = TextEditingController();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  final countryController = TextEditingController();
-  final stateController = TextEditingController();
-  final cityController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _displayNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _countryController = TextEditingController();
+  final _stateController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _profilePhotoController = TextEditingController(); // URL or asset
 
-  bool loading = false;
+  bool _loading = false;
+  String? _errorText;
 
-  Future<void> _createAccount() async {
+  Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => loading = true);
+    setState(() {
+      _loading = true;
+      _errorText = null;
+    });
 
     try {
-      /// 1. Create Firebase Auth user
-      UserCredential cred = await FirebaseAuth.instance
+      // 1. Create auth user with email + password
+      final credential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
 
-      final firebaseUid = cred.user!.uid;
+      final user = credential.user;
+      if (user == null) throw Exception('User is null');
 
-      /// 2. Generate your own internal user ID
-      final internalUserId = const Uuid().v4();
-
-      /// 3. Build UserProfile object
-      UserProfile profile = UserProfile(
-        id: internalUserId,
-        username: usernameController.text.trim(),
-        displayName: displayNameController.text.trim(),
-        email: emailController.text.trim(),
-        profilePhoto: "", // default for now
-        country: countryController.text.trim(),
-        state: stateController.text.trim(),
-        city: cityController.text.trim(),
-        friends: [],
-        events: [],
+      // 2. Build UserProfile model (id == auth uid)
+      final profile = UserProfile(
+        id: user.uid,
+        username: _usernameController.text.trim(),
+        displayName: _displayNameController.text.trim(),
+        email: user.email!,
+        profilePhoto: _profilePhotoController.text.trim(),
+        country: _countryController.text.trim(),
+        state: _stateController.text.trim(),
+        city: _cityController.text.trim(),
+        friends: const [],
+        events: const [],
       );
 
-      /// 4. Store in Firestore
+      // 3. Store in Firestore
       await FirebaseFirestore.instance
-          .collection("users")
-          .doc(firebaseUid)
+          .collection('users')
+          .doc(user.uid)
           .set(profile.toJson());
 
       if (mounted) {
-        Navigator.pop(context); // or go to home page
+        Navigator.of(context).pushReplacementNamed('/home');
       }
+    } on FirebaseAuthException catch (e) {
+      setState(() => _errorText = e.message ?? 'Authentication error');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+      setState(() => _errorText = 'Something went wrong');
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
-
-    setState(() => loading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Create Account")),
+      appBar: AppBar(title: const Text('Sign up')),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: usernameController,
-                decoration: const InputDecoration(labelText: "Username"),
-                validator: (v) => v!.isEmpty ? "Enter username" : null,
-              ),
-              TextFormField(
-                controller: displayNameController,
-                decoration: const InputDecoration(labelText: "Display Name"),
-              ),
-              TextFormField(
-                controller: emailController,
-                decoration: const InputDecoration(labelText: "Email"),
-                validator: (v) => v!.contains("@") ? null : "Invalid email",
-              ),
-              TextFormField(
-                controller: passwordController,
-                decoration: const InputDecoration(labelText: "Password"),
-                obscureText: true,
-                validator: (v) =>
-                    v!.length < 6 ? "Password must be 6+ chars" : null,
-              ),
-              TextFormField(
-                controller: countryController,
-                decoration: const InputDecoration(labelText: "Country"),
-              ),
-              TextFormField(
-                controller: stateController,
-                decoration: const InputDecoration(labelText: "State"),
-              ),
-              TextFormField(
-                controller: cityController,
-                decoration: const InputDecoration(labelText: "City"),
-              ),
-              const SizedBox(height: 20),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                if (_errorText != null)
+                  Text(_errorText!, style: const TextStyle(color: Colors.red)),
 
-              ElevatedButton(
-                onPressed: loading ? null : _createAccount,
-                child: loading
-                    ? const CircularProgressIndicator()
-                    : const Text("Sign Up"),
-              ),
-            ],
+                TextFormField(
+                  controller: _usernameController,
+                  decoration: const InputDecoration(labelText: 'Username'),
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter a username' : null,
+                ),
+                TextFormField(
+                  controller: _displayNameController,
+                  decoration: const InputDecoration(labelText: 'Display name'),
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter a display name' : null,
+                ),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                  validator: (v) =>
+                      v == null || !v.contains('@') ? 'Enter a valid email' : null,
+                ),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: const InputDecoration(labelText: 'Password'),
+                  obscureText: true,
+                  validator: (v) =>
+                      v != null && v.length >= 6 ? null : 'Min 6 characters',
+                ),
+                TextFormField(
+                  controller: _profilePhotoController,
+                  decoration:
+                      const InputDecoration(labelText: 'Profile photo URL'),
+                ),
+                TextFormField(
+                  controller: _countryController,
+                  decoration: const InputDecoration(labelText: 'Country'),
+                ),
+                TextFormField(
+                  controller: _stateController,
+                  decoration: const InputDecoration(labelText: 'State'),
+                ),
+                TextFormField(
+                  controller: _cityController,
+                  decoration: const InputDecoration(labelText: 'City'),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _loading ? null : _signUp,
+                  child: _loading
+                      ? const CircularProgressIndicator()
+                      : const Text('Create account'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

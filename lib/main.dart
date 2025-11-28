@@ -4,7 +4,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'screens/home_root.dart';
+import 'screens/login_page.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'services/auth_service.dart';
 
 
 // void main() => runApp(const SaphireApp());
@@ -56,7 +59,25 @@ class SaphireApp extends StatelessWidget {
         ),
         cardTheme: const CardThemeData(margin: EdgeInsets.zero, clipBehavior: Clip.antiAlias),
       ),
-      home: const HomeRoot(), // <- new bottom-nav shell
+      home: StreamBuilder<User?>(
+        stream: AuthService.authStateChanges,  // Requires the stream getter from previous response
+        builder: (context, snapshot) {
+          // Loading while Firebase initializes
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          
+          // Already signed in → HomeRoot (your bottom nav)
+          if (snapshot.hasData) {
+            return const HomeRoot();
+          }
+          
+          // Not signed in → LoginPage
+          return const LoginPage();
+        },
+      ),
     );
   }
 }
