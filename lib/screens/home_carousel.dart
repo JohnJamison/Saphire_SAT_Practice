@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/mode_item.dart';
 import '../models/announcement.dart';
-import '../widgets/announcements_strip.dart';
+import '../widgets/announcements_board.dart'; // Was announcements_strip.dart but that doesn't exist, was it just a placeholder?
 import '../widgets/playing_card.dart';
 import '../widgets/dots_indicator.dart';
 import '../backdrops/backdrop_grid.dart';

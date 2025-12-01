@@ -8,6 +8,7 @@ class UserProfile {
   String displayName;  // what they show to other users (can repeat)
   String email;        // login email
 
+
   String profilePhoto; // asset path or URL
 
   String country;
@@ -30,6 +31,7 @@ class UserProfile {
     required this.city,
     required this.friends,
     required this.events,
+
   });
 
   // Convenience getter for total number of events (optional)

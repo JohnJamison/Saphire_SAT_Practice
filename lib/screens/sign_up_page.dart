@@ -1,8 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../models/user_profile.dart';
-import '../models/user_events.dart';
+import '../services/firestore_service.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -13,6 +11,7 @@ class SignUpPage extends StatefulWidget {
 
 class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
+  final _firestoreService = FirestoreService();
 
   final _usernameController = TextEditingController();
   final _displayNameController = TextEditingController();
@@ -21,7 +20,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final _countryController = TextEditingController();
   final _stateController = TextEditingController();
   final _cityController = TextEditingController();
-  final _profilePhotoController = TextEditingController(); // URL or asset
+  final _numberController = TextEditingController();
 
   bool _loading = false;
   String? _errorText;
@@ -35,114 +34,131 @@ class _SignUpPageState extends State<SignUpPage> {
     });
 
     try {
-      // 1. Create auth user with email + password
-      final credential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
+      final credential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
       final user = credential.user;
-      if (user == null) throw Exception('User is null');
+      if (user == null) throw Exception('User creation failed');
 
-      // 2. Build UserProfile model (id == auth uid)
-      final profile = UserProfile(
-        id: user.uid,
-        username: _usernameController.text.trim(),
-        displayName: _displayNameController.text.trim(),
-        email: user.email!,
-        profilePhoto: _profilePhotoController.text.trim(),
-        country: _countryController.text.trim(),
-        state: _stateController.text.trim(),
-        city: _cityController.text.trim(),
-        friends: const [],
-        events: const [],
+      await _firestoreService.addUser(
+        user.uid,
+        _usernameController.text.trim(),
+        _displayNameController.text.trim(),
+        _stateController.text.trim(),
+        _cityController.text.trim(),
+        _countryController.text.trim(),
+        user.email!,
+        _numberController.text.trim(),
+        [], // empty answers list initially
       );
 
-      // 3. Store in Firestore
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .set(profile.toJson());
-
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
-      }
+      if (mounted) Navigator.of(context).pushReplacementNamed('/home');
     } on FirebaseAuthException catch (e) {
-      setState(() => _errorText = e.message ?? 'Authentication error');
+      setState(() => _errorText = e.message ?? 'Auth error');
     } catch (e) {
-      setState(() => _errorText = 'Something went wrong');
+      setState(() => _errorText = 'Something went wrong: $e');
     } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign up')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
           child: SingleChildScrollView(
-            child: Column(
-              children: [
-                if (_errorText != null)
-                  Text(_errorText!, style: const TextStyle(color: Colors.red)),
-
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(labelText: 'Username'),
-                  validator: (v) =>
-                      v == null || v.isEmpty ? 'Enter a username' : null,
+            padding: const EdgeInsets.all(32),
+            child: Card(
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Create Account',
+                          style: TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 24),
+                      if (_errorText != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: Text(_errorText!,
+                              style: const TextStyle(
+                                  color: Colors.red, fontWeight: FontWeight.bold)),
+                        ),
+                      TextFormField(
+                        controller: _usernameController,
+                        decoration: const InputDecoration(labelText: 'Username'),
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Required' : null,
+                      ),
+                      TextFormField(
+                        controller: _displayNameController,
+                        decoration:
+                            const InputDecoration(labelText: 'Display Name'),
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Required' : null,
+                      ),
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: const InputDecoration(labelText: 'Email'),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (v) =>
+                            // v != null && v.contains('@') ? null : 'Valid email',
+                            v == null || !v.contains('@') ? 'Valid email required' : null
+                      ),
+                      TextFormField(
+                        controller: _passwordController,
+                        decoration: const InputDecoration(labelText: 'Password'),
+                        obscureText: true,
+                        validator: (v) =>
+                            // v != null && v.length >= 6 ? null : 'Min 6 chars',
+                            v == null || v.length >= 6 ? null : 'Min 6 chars',                      ),
+                      TextFormField(
+                        controller: _countryController,
+                        decoration: const InputDecoration(labelText: 'Country'),
+                      ),
+                      TextFormField(
+                        controller: _stateController,
+                        decoration: const InputDecoration(labelText: 'State'),
+                      ),
+                      TextFormField(
+                        controller: _cityController,
+                        decoration: const InputDecoration(labelText: 'City'),
+                      ),
+                      TextFormField(
+                        controller: _numberController,
+                        decoration:
+                            const InputDecoration(labelText: 'Phone Number'),
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _loading ? null : _signUp,
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          minimumSize: const Size.fromHeight(48),
+                        ),
+                        child: _loading
+                            ? const CircularProgressIndicator()
+                            : const Text('Sign Up',
+                                style: TextStyle(fontSize: 18)),
+                      ),
+                    ],
+                  ),
                 ),
-                TextFormField(
-                  controller: _displayNameController,
-                  decoration: const InputDecoration(labelText: 'Display name'),
-                  validator: (v) =>
-                      v == null || v.isEmpty ? 'Enter a display name' : null,
-                ),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  validator: (v) =>
-                      v == null || !v.contains('@') ? 'Enter a valid email' : null,
-                ),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  obscureText: true,
-                  validator: (v) =>
-                      v != null && v.length >= 6 ? null : 'Min 6 characters',
-                ),
-                TextFormField(
-                  controller: _profilePhotoController,
-                  decoration:
-                      const InputDecoration(labelText: 'Profile photo URL'),
-                ),
-                TextFormField(
-                  controller: _countryController,
-                  decoration: const InputDecoration(labelText: 'Country'),
-                ),
-                TextFormField(
-                  controller: _stateController,
-                  decoration: const InputDecoration(labelText: 'State'),
-                ),
-                TextFormField(
-                  controller: _cityController,
-                  decoration: const InputDecoration(labelText: 'City'),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _loading ? null : _signUp,
-                  child: _loading
-                      ? const CircularProgressIndicator()
-                      : const Text('Create account'),
-                ),
-              ],
+              ),
             ),
           ),
         ),

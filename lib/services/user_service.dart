@@ -35,6 +35,7 @@ class UserService {
       state: "",
       city: "",
       friends: [],
+      events: [], // Added events since not there previously
     );
 
     _users[user.id] = user;
