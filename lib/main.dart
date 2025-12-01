@@ -1,25 +1,26 @@
-// Root app with bottom nav + new dashboard home.
-// Safe to replace your current main.dart.
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'screens/home_root.dart';
 import 'screens/login_page.dart';
+
+// Firebase
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';   // <-- REQUIRED for Web
 import 'services/auth_service.dart';
 
-
-// void main() => runApp(const SaphireApp());
-
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+
+  // ✅ WORKING Firebase initialization (mobile + web)
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const SaphireApp());
 }
 
-
-// Allow scrolling with touch/mouse/trackpad on web/desktop.
+// Allow scrolling on desktop / web
 class AppScrollBehavior extends MaterialScrollBehavior {
   const AppScrollBehavior();
   @override
@@ -55,26 +56,33 @@ class SaphireApp extends StatelessWidget {
           ),
         ),
         inputDecorationTheme: const InputDecorationTheme(
-          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+          ),
         ),
-        cardTheme: const CardThemeData(margin: EdgeInsets.zero, clipBehavior: Clip.antiAlias),
+        cardTheme: const CardThemeData(
+          margin: EdgeInsets.zero,
+          clipBehavior: Clip.antiAlias,
+        ),
       ),
+
+      // ✅ LOGIN LOGIC WITH STREAMBUILDER
       home: StreamBuilder<User?>(
-        stream: AuthService.authStateChanges,  // Requires the stream getter from previous response
+        stream: AuthService.authStateChanges,
         builder: (context, snapshot) {
-          // Loading while Firebase initializes
+          // Still connecting → loading spinner
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          
-          // Already signed in → HomeRoot (your bottom nav)
+
+          // User is signed in → go to main app
           if (snapshot.hasData) {
             return const HomeRoot();
           }
-          
-          // Not signed in → LoginPage
+
+          // No user → go to login page
           return const LoginPage();
         },
       ),
