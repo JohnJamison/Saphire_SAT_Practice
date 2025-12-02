@@ -55,6 +55,8 @@ class _SignUpPageState extends State<SignUpPage> {
         [], // empty answers list initially
       );
 
+      // Add User Profile class creation
+
       if (mounted) Navigator.of(context).pushReplacementNamed('/home');
     } on FirebaseAuthException catch (e) {
       setState(() => _errorText = e.message ?? 'Auth error');

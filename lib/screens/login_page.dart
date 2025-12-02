@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../backdrops/backdrop_honeycomb.dart';
 import 'sign_up_page.dart';
 
@@ -10,7 +11,7 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> 
+class _LoginPageState extends State<LoginPage>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
@@ -25,8 +26,8 @@ class _LoginPageState extends State<LoginPage>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      vsync: this, 
-      duration: const Duration(seconds: 6)
+      vsync: this,
+      duration: const Duration(seconds: 6),
     )..repeat();
   }
 
@@ -61,18 +62,61 @@ class _LoginPageState extends State<LoginPage>
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _loading = true;
+      _errorText = null;
+    });
+
+    try {
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        // User cancelled
+        setState(() => _loading = false);
+        return;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final accessToken = googleAuth.accessToken;
+      final idToken = googleAuth.idToken;
+
+      if (accessToken == null || idToken == null) {
+        setState(() {
+          _loading = false;
+          _errorText = 'Missing Google authentication tokens';
+        });
+        return;
+      }
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: accessToken,
+        idToken: idToken,
+      );
+
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
+      if (mounted) Navigator.of(context).pushReplacementNamed('/home');
+    } on FirebaseAuthException catch (e) {
+      setState(() => _errorText = e.message ?? 'Google sign-in failed');
+    } catch (e) {
+      setState(() => _errorText = 'Error: $e');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         // Honeycomb backdrop
         BackdropHoneycomb(animation: _controller),
-        
-        // Dark overlay for better contrast
+
+        // Dark overlay
         Container(
-          color: const Color(0xAA000000), // 66% black overlay
+          color: const Color(0xAA000000),
         ),
-        
+
         Scaffold(
           backgroundColor: Colors.transparent,
           body: SafeArea(
@@ -84,9 +128,8 @@ class _LoginPageState extends State<LoginPage>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Logo/Title (match your image)
                       const Icon(
-                        Icons.school, // Replace with your app logo
+                        Icons.school,
                         size: 80,
                         color: Colors.white,
                       ),
@@ -101,8 +144,7 @@ class _LoginPageState extends State<LoginPage>
                         ),
                       ),
                       const SizedBox(height: 40),
-                      
-                      // Login Card
+
                       Container(
                         constraints: const BoxConstraints(maxWidth: 360),
                         decoration: BoxDecoration(
@@ -138,7 +180,7 @@ class _LoginPageState extends State<LoginPage>
                                   ),
                                 ),
                                 const SizedBox(height: 32),
-                                
+
                                 if (_errorText != null) ...[
                                   Container(
                                     width: double.infinity,
@@ -156,8 +198,7 @@ class _LoginPageState extends State<LoginPage>
                                   ),
                                   const SizedBox(height: 16),
                                 ],
-                                
-                                // Email Field
+
                                 TextFormField(
                                   controller: _emailController,
                                   keyboardType: TextInputType.emailAddress,
@@ -175,13 +216,13 @@ class _LoginPageState extends State<LoginPage>
                                     filled: true,
                                     fillColor: Colors.grey[50],
                                   ),
-                                  validator: (v) => v != null && v.contains('@') 
-                                      ? null 
-                                      : 'Please enter a valid email',
+                                  validator: (v) =>
+                                      v == null || !v.contains('@')
+                                          ? 'Please enter a valid email'
+                                          : null,
                                 ),
                                 const SizedBox(height: 16),
-                                
-                                // Password Field
+
                                 TextFormField(
                                   controller: _passwordController,
                                   obscureText: true,
@@ -199,13 +240,13 @@ class _LoginPageState extends State<LoginPage>
                                     filled: true,
                                     fillColor: Colors.grey[50],
                                   ),
-                                  validator: (v) => v != null && v.isNotEmpty 
-                                      ? null 
-                                      : 'Please enter your password',
+                                  validator: (v) =>
+                                      v == null || v.isEmpty
+                                          ? 'Please enter your password'
+                                          : null,
                                 ),
                                 const SizedBox(height: 24),
-                                
-                                // Login Button
+
                                 SizedBox(
                                   width: double.infinity,
                                   height: 56,
@@ -237,21 +278,55 @@ class _LoginPageState extends State<LoginPage>
                                           ),
                                   ),
                                 ),
-                                // Sign Up Link
+
+                                const SizedBox(height: 16),
+
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 56,
+                                  child: ElevatedButton(
+                                    onPressed: _loading ? null : _signInWithGoogle,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      foregroundColor: Colors.black87,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        side: const BorderSide(color: Colors.grey),
+                                      ),
+                                      elevation: 2,
+                                    ),
+                                    child: const Text(
+                                      'Sign in with Google',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
                                 const SizedBox(height: 24),
+
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text("Don't have an account? ", style: TextStyle(color: Colors.grey[600])),
+                                    Text(
+                                      "Don't have an account? ",
+                                      style: TextStyle(color: Colors.grey[600]),
+                                    ),
                                     TextButton(
                                       onPressed: () => Navigator.of(context).push(
-                                        MaterialPageRoute(builder: (_) => const SignUpPage()),
+                                        MaterialPageRoute(
+                                            builder: (_) => const SignUpPage()),
                                       ),
-                                      child: const Text('Sign Up', style: TextStyle(
-                                        color: Color(0xFFB80F0A), 
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      )),
+                                      child: const Text(
+                                        'Sign Up',
+                                        style: TextStyle(
+                                          color: Color(0xFFB80F0A),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
