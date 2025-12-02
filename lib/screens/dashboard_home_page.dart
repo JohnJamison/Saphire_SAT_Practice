@@ -9,9 +9,6 @@ import '../widgets/progress_card.dart';
 import '../widgets/stats_grid.dart';
 import '../models/announcement.dart';
 
-// ⭐ ADD THIS IMPORT
-import 'friends_page.dart';
-
 class DashboardHomePage extends StatelessWidget {
   const DashboardHomePage({super.key});
 
@@ -139,30 +136,6 @@ class DashboardHomePage extends StatelessWidget {
                       label: 'Trend',
                       value: '+3.4%'),
                 ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // ⭐ SAFE "Find Friends" button (does NOT break anything)
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const FriendsPage()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  "Find Friends",
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
               ),
 
               const SizedBox(height: 24),

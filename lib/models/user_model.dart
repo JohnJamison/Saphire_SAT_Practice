@@ -1,13 +1,17 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
 class UserModel {
   static final UserModel instance = UserModel._();
-
   UserModel._();
 
-  // Defaults you requested
+  // Pull UID directly from Firebase
+  String get uid => FirebaseAuth.instance.currentUser?.uid ?? "";
+
+  // Profile fields
   String name = "Student";
   String username = "Student0";
 
-  // Fake stats for now
+  // Fake stats (unchanged)
   int accuracy = 78;
   int avgTime = 52;
   int scoreEstimate = 1320;
@@ -15,7 +19,6 @@ class UserModel {
   int totalPracticed = 84;
   int totalCorrect = 73;
   int overallAvgTime = 99;
-
 
   String get displayInitials {
     if (name.isEmpty) return "?";
