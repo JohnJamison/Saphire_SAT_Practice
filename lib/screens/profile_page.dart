@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'edit_profile_page.dart';
 import '../../models/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -104,22 +105,39 @@ class ProfilePage extends StatelessWidget {
                       ),
                     ),
                   ),
-
-                  // -------- EDIT BUTTON RIGHT-ALIGNED --------
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const EditProfilePage()),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black87,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                      shape: const StadiumBorder(),
-                    ),
-                    child: const Text("Edit Profile"),
+                  // -------- EDIT + SIGN OUT BUTTONS RIGHT-ALIGNED --------
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const EditProfilePage()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black87,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          shape: const StadiumBorder(),
+                        ),
+                        child: const Text("Edit Profile"),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: () async {
+                          await FirebaseAuth.instance.signOut();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black87,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          shape: const StadiumBorder(),
+                        ),
+                        child: const Text("Sign Out"),
+                      ),
+                    ],
                   ),
                 ],
               ),
