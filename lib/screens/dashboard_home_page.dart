@@ -9,15 +9,15 @@ import '../widgets/progress_card.dart';
 import '../widgets/stats_grid.dart';
 import '../models/announcement.dart';
 
-
+// ⭐ ADD THIS IMPORT
+import 'friends_page.dart';
 
 class DashboardHomePage extends StatelessWidget {
   const DashboardHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    
-    // ---------------- Delacarations ----------------
+    // ---------------- Declarations ----------------
     final announcements = <Announcement>[
       Announcement(
         Icons.new_releases_outlined,
@@ -38,17 +38,14 @@ class DashboardHomePage extends StatelessWidget {
 
     final recentModes = <String>['Timed Mode', 'Practice Sets', 'Adaptive Drill'];
 
-
     //---------------- Widget -----------------------------------------------------
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 8, 1, 24),
-      
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-
               // ---------------- HEADER ROW ----------------
               Row(
                 children: [
@@ -97,7 +94,6 @@ class DashboardHomePage extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-
               // ---------------- RECENTS ----------------
               RecentsRow(
                 items: recentModes,
@@ -117,7 +113,6 @@ class DashboardHomePage extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
-
 
               // ---------------- ANNOUNCEMENTS ----------------
               AnnouncementsBoard(items: announcements),
@@ -146,6 +141,31 @@ class DashboardHomePage extends StatelessWidget {
                 ],
               ),
 
+              const SizedBox(height: 24),
+
+              // ⭐ SAFE "Find Friends" button (does NOT break anything)
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const FriendsPage()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  "Find Friends",
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
+
+              const SizedBox(height: 24),
             ],
           ),
         );
