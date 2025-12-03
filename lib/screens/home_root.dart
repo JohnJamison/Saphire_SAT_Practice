@@ -17,13 +17,14 @@ class HomeRoot extends StatefulWidget {
 class _HomeRootState extends State<HomeRoot> {
   int _index = 0;
 
-  final _pages = const [
-    DashboardHomePage(),
-    PracticePage(),
-    RankedPage(),
-    LeaderboardPage(),   // <-- ADD THIS
-    ProfilePage(),
-  ];
+final _pages = [
+  DashboardHomePage(),
+  PracticePage(),
+  RankedPage(),
+  LeaderboardPage(),
+  ProfilePage(),
+];
+
 
   @override
   Widget build(BuildContext context) {

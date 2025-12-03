@@ -5,7 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/question.dart';
 import '../data/repo_local.dart';
+import '../services/attempt_service.dart';
 import 'dart:ui' as ui; // for BackdropFilter blur
+//Firebase plugins
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 
 /* ============================================================================
@@ -435,6 +440,22 @@ class Attempt {
   final bool flagged;
   Attempt(this.q, this.chosenLabel, this.timeMs, {this.flagged = false});
   bool get correct => chosenLabel == q.correctLabel;
+
+  Map<String, dynamic> toMap() {
+  return {
+    'questionId': q.id,
+    'prompt': q.prompt,
+    'category': q.category,
+    'subcategory': q.subcategory,
+    'section': q.section,
+    'chosenLabel': chosenLabel,
+    'correctLabel': q.correctLabel,
+    'correct': correct,
+    'timeMs': timeMs,
+    'flagged': flagged,
+  };
+}
+  
 }
 
 class TimedModePage extends StatefulWidget {
@@ -567,12 +588,30 @@ class _TimedModePageState extends State<TimedModePage> {
     _nextQuestion();
   }
 
-  void _endGame({bool exhausted = false}) {
+  Future<void> _saveAttemptsToFirebase() async {
+    final sessionId = DateTime.now().millisecondsSinceEpoch.toString();
+
+    final maps = _attempts.map((a) => a.toMap()).toList();
+
+    await AttemptService().saveAttempts(
+      maps,
+      sessionId: sessionId,
+      totalSeconds: widget.totalSeconds,
+      sectionMode: widget.sectionMode.name,
+    );
+  }
+
+
+  void _endGame({bool exhausted = false}) async {
     if (_ended) return;
     _ended = true;
     _exhausted = exhausted;
     _overallTimer?.cancel();
     _qWatch.stop();
+
+  // ⬇️ SAVE ATTEMPTS TO FIREBASE BEFORE SHOWING DIALOG
+  await _saveAttemptsToFirebase();
+
 
     final int attempted = _attempts.length;
     final int correct = _attempts.where((a) => a.correct).length;
