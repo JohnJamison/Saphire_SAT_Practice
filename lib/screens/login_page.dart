@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import '../backdrops/backdrop_honeycomb.dart';
 import 'sign_up_page.dart';
 
@@ -62,57 +61,12 @@ class _LoginPageState extends State<LoginPage>
     }
   }
 
-  Future<void> _signInWithGoogle() async {
-    setState(() {
-      _loading = true;
-      _errorText = null;
-    });
-
-    try {
-      final googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) {
-        // User cancelled
-        setState(() => _loading = false);
-        return;
-      }
-
-      final googleAuth = await googleUser.authentication;
-      final accessToken = googleAuth.accessToken;
-      final idToken = googleAuth.idToken;
-
-      if (accessToken == null || idToken == null) {
-        setState(() {
-          _loading = false;
-          _errorText = 'Missing Google authentication tokens';
-        });
-        return;
-      }
-
-      final credential = GoogleAuthProvider.credential(
-        accessToken: accessToken,
-        idToken: idToken,
-      );
-
-      await FirebaseAuth.instance.signInWithCredential(credential);
-
-      if (mounted) Navigator.of(context).pushReplacementNamed('/home');
-    } on FirebaseAuthException catch (e) {
-      setState(() => _errorText = e.message ?? 'Google sign-in failed');
-    } catch (e) {
-      setState(() => _errorText = 'Error: $e');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Honeycomb backdrop
         BackdropHoneycomb(animation: _controller),
 
-        // Dark overlay
         Container(
           color: const Color(0xAA000000),
         ),
@@ -188,11 +142,15 @@ class _LoginPageState extends State<LoginPage>
                                     decoration: BoxDecoration(
                                       color: Colors.red.shade50,
                                       borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Colors.red.shade200),
+                                      border: Border.all(
+                                        color: Colors.red.shade200,
+                                      ),
                                     ),
                                     child: Text(
                                       _errorText!,
-                                      style: TextStyle(color: Colors.red.shade700),
+                                      style: TextStyle(
+                                        color: Colors.red.shade700,
+                                      ),
                                       textAlign: TextAlign.center,
                                     ),
                                   ),
@@ -204,14 +162,20 @@ class _LoginPageState extends State<LoginPage>
                                   keyboardType: TextInputType.emailAddress,
                                   decoration: InputDecoration(
                                     labelText: 'Email',
-                                    prefixIcon: const Icon(Icons.email_outlined),
+                                    prefixIcon:
+                                        const Icon(Icons.email_outlined),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(14),
-                                      borderSide: BorderSide(color: Colors.grey[300]!),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey[300]!,
+                                      ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(14),
-                                      borderSide: const BorderSide(color: Color(0xFFB80F0A), width: 2),
+                                      borderSide: const BorderSide(
+                                        color: Color(0xFFB80F0A),
+                                        width: 2,
+                                      ),
                                     ),
                                     filled: true,
                                     fillColor: Colors.grey[50],
@@ -228,14 +192,20 @@ class _LoginPageState extends State<LoginPage>
                                   obscureText: true,
                                   decoration: InputDecoration(
                                     labelText: 'Password',
-                                    prefixIcon: const Icon(Icons.lock_outlined),
+                                    prefixIcon:
+                                        const Icon(Icons.lock_outlined),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(14),
-                                      borderSide: BorderSide(color: Colors.grey[300]!),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey[300]!,
+                                      ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(14),
-                                      borderSide: const BorderSide(color: Color(0xFFB80F0A), width: 2),
+                                      borderSide: const BorderSide(
+                                        color: Color(0xFFB80F0A),
+                                        width: 2,
+                                      ),
                                     ),
                                     filled: true,
                                     fillColor: Colors.grey[50],
@@ -253,10 +223,12 @@ class _LoginPageState extends State<LoginPage>
                                   child: ElevatedButton(
                                     onPressed: _loading ? null : _login,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFFB80F0A),
+                                      backgroundColor:
+                                          const Color(0xFFB80F0A),
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(14),
+                                        borderRadius:
+                                            BorderRadius.circular(14),
                                       ),
                                       elevation: 2,
                                     ),
@@ -264,7 +236,8 @@ class _LoginPageState extends State<LoginPage>
                                         ? const SizedBox(
                                             height: 24,
                                             width: 24,
-                                            child: CircularProgressIndicator(
+                                            child:
+                                                CircularProgressIndicator(
                                               color: Colors.white,
                                               strokeWidth: 2,
                                             ),
@@ -279,32 +252,6 @@ class _LoginPageState extends State<LoginPage>
                                   ),
                                 ),
 
-                                const SizedBox(height: 16),
-
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 56,
-                                  child: ElevatedButton(
-                                    onPressed: _loading ? null : _signInWithGoogle,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      foregroundColor: Colors.black87,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(14),
-                                        side: const BorderSide(color: Colors.grey),
-                                      ),
-                                      elevation: 2,
-                                    ),
-                                    child: const Text(
-                                      'Sign in with Google',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-
                                 const SizedBox(height: 24),
 
                                 Row(
@@ -312,12 +259,17 @@ class _LoginPageState extends State<LoginPage>
                                   children: [
                                     Text(
                                       "Don't have an account? ",
-                                      style: TextStyle(color: Colors.grey[600]),
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                      ),
                                     ),
                                     TextButton(
-                                      onPressed: () => Navigator.of(context).push(
+                                      onPressed: () => Navigator.of(context)
+                                          .push(
                                         MaterialPageRoute(
-                                            builder: (_) => const SignUpPage()),
+                                          builder: (_) =>
+                                              const SignUpPage(),
+                                        ),
                                       ),
                                       child: const Text(
                                         'Sign Up',
