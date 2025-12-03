@@ -56,9 +56,8 @@ class _SignUpPageState extends State<SignUpPage> {
         [],
       );
 
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
-      }
+      if (mounted) Navigator.of(context).pop();
+      
     } on FirebaseAuthException catch (e) {
       setState(() => _errorText = e.message ?? 'Auth error');
     } catch (e) {
