@@ -12,7 +12,7 @@ import 'services/auth_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ WORKING Firebase initialization (mobile + web)
+  // Firebase initialization (mobile + web)
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -66,7 +66,7 @@ class SaphireApp extends StatelessWidget {
         ),
       ),
 
-      // ✅ LOGIN LOGIC WITH STREAMBUILDER
+      // Login logic
       home: StreamBuilder<User?>(
         stream: AuthService.authStateChanges,
         builder: (context, snapshot) {
