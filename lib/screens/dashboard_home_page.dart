@@ -9,8 +9,156 @@ import '../widgets/progress_card.dart';
 import '../widgets/stats_grid.dart';
 import '../models/announcement.dart';
 
-class DashboardHomePage extends StatelessWidget {
+class DashboardHomePage extends StatefulWidget {
   const DashboardHomePage({super.key});
+
+  @override
+  State<DashboardHomePage> createState() => _DashboardHomePageState();
+}
+
+class _DashboardHomePageState extends State<DashboardHomePage> {
+  String _selectedTimeOfDay = 'Morning';
+  String _selectedSubject = 'Math';
+
+  void _showSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Header
+                    Row(
+                      children: [
+                        const Icon(Icons.settings, size: 28),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Settings',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                          style: IconButton.styleFrom(
+                            shape: const CircleBorder(),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Time of Day Section
+                    const Text(
+                      'Preferred Study Time',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: ['Morning', 'Afternoon', 'Evening', 'Night']
+                          .map((time) => ChoiceChip(
+                                label: Text(time),
+                                selected: _selectedTimeOfDay == time,
+                                onSelected: (selected) {
+                                  setState(() {
+                                    _selectedTimeOfDay = time;
+                                  });
+                                  this.setState(() {});
+                                },
+                                selectedColor: Colors.blue.shade100,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Subject Focus Section
+                    const Text(
+                      'Subject Focus',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: ['Math', 'Reading', 'Writing', 'Science']
+                          .map((subject) => ChoiceChip(
+                                label: Text(subject),
+                                selected: _selectedSubject == subject,
+                                onSelected: (selected) {
+                                  setState(() {
+                                    _selectedSubject = subject;
+                                  });
+                                  this.setState(() {});
+                                },
+                                selectedColor: Colors.blue.shade100,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Save Button
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Settings saved!'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Save Settings',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +220,7 @@ class DashboardHomePage extends StatelessWidget {
                   // Right-side settings button
                   IconButton(
                     tooltip: 'Settings',
-                    onPressed: () {},
+                    onPressed: _showSettingsDialog,
                     icon: const Icon(Icons.settings, color: Colors.black54),
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.white.withOpacity(.85),
@@ -104,7 +252,7 @@ class DashboardHomePage extends StatelessWidget {
               // ---------------- PROGRESS ----------------
               const ProgressCard(
                 title: 'Weekly Progress',
-                subtitle: 'You’re on track for your goal',
+                subtitle: "You're on track for your goal",
                 progress: 0.62,
                 trailingLabel: '62%',
               ),
