@@ -1,10 +1,11 @@
-// Bottom navigation shell with 4 tabs.
+// Bottom navigation shell with 5 tabs.
 
 import 'package:flutter/material.dart';
 import 'dashboard_home_page.dart';
 import 'practice_page.dart';
 import 'ranked_page.dart';
 import 'profile_page.dart';
+import 'leaderboard_page.dart';   // <-- ADD THIS
 
 class HomeRoot extends StatefulWidget {
   const HomeRoot({super.key});
@@ -20,15 +21,15 @@ class _HomeRootState extends State<HomeRoot> {
     DashboardHomePage(),
     PracticePage(),
     RankedPage(),
+    LeaderboardPage(),   // <-- ADD THIS
     ProfilePage(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       backgroundColor: const Color(0xFF8B0D07),
-      
+
       body: SafeArea(
         child: IndexedStack(index: _index, children: _pages),
       ),
@@ -38,10 +39,31 @@ class _HomeRootState extends State<HomeRoot> {
         onDestinationSelected: (i) => setState(() => _index = i),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.list_alt_outlined), selectedIcon: Icon(Icons.list_alt), label: 'Practice'),
-          NavigationDestination(icon: Icon(Icons.leaderboard_outlined), selectedIcon: Icon(Icons.leaderboard), label: 'Ranked'),
-          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile'),
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home'
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.list_alt_outlined),
+            selectedIcon: Icon(Icons.list_alt),
+            label: 'Practice'
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.sports_esports_outlined),
+            selectedIcon: Icon(Icons.sports_esports),
+            label: 'Ranked'
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.leaderboard_outlined),
+            selectedIcon: Icon(Icons.leaderboard),
+            label: 'Leaderboard'
+          ), // <-- NEW TAB
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile'
+          ),
         ],
       ),
     );
