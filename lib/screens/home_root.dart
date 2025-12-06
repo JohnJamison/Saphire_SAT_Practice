@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'dashboard_home_page.dart';
 import 'practice_page.dart';
-import 'ranked_page.dart';
 import 'profile_page.dart';
 import 'leaderboard_page.dart';   // <-- ADD THIS
 
@@ -20,7 +19,6 @@ class _HomeRootState extends State<HomeRoot> {
 final _pages = [
   DashboardHomePage(),
   PracticePage(),
-  RankedPage(),
   LeaderboardPage(),
   ProfilePage(),
 ];
@@ -49,11 +47,6 @@ final _pages = [
             icon: Icon(Icons.list_alt_outlined),
             selectedIcon: Icon(Icons.list_alt),
             label: 'Practice'
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.sports_esports_outlined),
-            selectedIcon: Icon(Icons.sports_esports),
-            label: 'Ranked'
           ),
           NavigationDestination(
             icon: Icon(Icons.leaderboard_outlined),
